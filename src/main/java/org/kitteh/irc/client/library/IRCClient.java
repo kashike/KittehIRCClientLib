@@ -266,6 +266,7 @@ final class IRCClient implements Client {
 
     private NettyManager.ClientConnection connection;
 
+    private final CAPManager capManager = new CAPManager();
     private final EventManager eventManager = new EventManager(this);
 
     private final Listener<Exception> exceptionListener;
@@ -551,6 +552,8 @@ final class IRCClient implements Client {
     void connect() {
         this.connection = NettyManager.connect(this);
 
+        this.sendPriorityRawLine("CAP LS");
+
         // If the server has a password, send that along first
         if (this.config.get(Config.SERVER_PASSWORD) != null) {
             this.sendPriorityRawLine("PASS " + this.config.get(Config.SERVER_PASSWORD));
@@ -748,6 +751,23 @@ final class IRCClient implements Client {
             return; // If handled as CTCP we don't care about further handling.
         }
         switch (command) {
+            case CAP:
+                switch (args[1].toLowerCase()) {
+                    case "ack":
+                        // TODO event
+                        break;
+                    case "list":
+                        // TODO event
+                        break;
+                    case "ls":
+                        String[] supported = args.length > 2 ? args[2].split(" ") : new String[0];
+                        // TODO event
+                        break;
+                    case "nak":
+                        // TODO event
+                        break;
+                }
+                break;
             case NOTICE:
                 switch (this.getTypeByTarget(args[0])) {
                     case CHANNEL:

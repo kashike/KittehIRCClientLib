@@ -23,45 +23,26 @@
  */
 package org.kitteh.irc.client.library;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Commands used in client/server communication.
+ * I'm the CAP man!
  */
-enum Command {
-    CAP,
-    INVITE,
-    JOIN,
-    KICK,
-    MODE,
-    NICK,
-    NOTICE,
-    PART,
-    PRIVMSG,
-    TOPIC,
-    QUIT;
+class CAPManager {
+    enum Capability {
+        AWAY_NOTIFY;
 
-    private static final Map<String, Command> nameMap = new HashMap<>();
+        private String toString;
 
-    static {
-        for (Command command : values()) {
-            nameMap.put(command.name(), command);
+        private Capability() {
+            this.toString = this.name().toLowerCase().replace('_', '-');
         }
     }
 
-    /**
-     * Gets a Command by name. Case insensitive.
-     *
-     * @param name the name of the Command to get
-     * @return the matching Command or null if no match
-     */
-    public static Command getByName(String name) {
-        return nameMap.get(name.toUpperCase());
-    }
+    private List<Capability> capabilities;
 
-    @Override
-    public String toString() {
-        return this.name(); // Explicitly overriding as a reminder that this is used as such
+    List<Capability> getCapabilities() {
+        return new ArrayList<>(this.capabilities);
     }
 }
