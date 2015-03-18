@@ -26,6 +26,8 @@ package org.kitteh.irc.client.library;
 import org.kitteh.irc.client.library.element.Channel;
 import org.kitteh.irc.client.library.element.ChannelUserMode;
 import org.kitteh.irc.client.library.element.MessageReceiver;
+import org.kitteh.irc.client.library.event.CapabilityResponseEvent;
+import org.kitteh.irc.client.library.event.capabilities.ServerCapabilitiesSupportedListEvent;
 import org.kitteh.irc.client.library.event.channel.ChannelCTCPEvent;
 import org.kitteh.irc.client.library.event.channel.ChannelInviteEvent;
 import org.kitteh.irc.client.library.event.channel.ChannelJoinEvent;
@@ -56,6 +58,7 @@ import org.kitteh.irc.client.library.util.Sanity;
 import org.kitteh.irc.client.library.util.StringUtil;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -266,7 +269,7 @@ final class IRCClient implements Client {
 
     private NettyManager.ClientConnection connection;
 
-    private final CAPManager capManager = new CAPManager();
+    private final CapabilityManager capabilityManager = new CapabilityManager(this);
     private final EventManager eventManager = new EventManager(this);
 
     private final Listener<Exception> exceptionListener;
@@ -752,6 +755,7 @@ final class IRCClient implements Client {
         }
         switch (command) {
             case CAP:
+                CapabilityResponseEvent event = null;
                 switch (args[1].toLowerCase()) {
                     case "ack":
                         // TODO event
@@ -760,12 +764,17 @@ final class IRCClient implements Client {
                         // TODO event
                         break;
                     case "ls":
-                        String[] supported = args.length > 2 ? args[2].split(" ") : new String[0];
-                        // TODO event
+                        event = new ServerCapabilitiesSupportedListEvent(this.capabilityManager.isNegotiating(), Arrays.asList(args.length > 2 ? args[2].split(" ") : new String[0]));
                         break;
                     case "nak":
                         // TODO event
                         break;
+                }
+                if (event != null) {
+                    if (event.isNegotiating() && event.isEndingNegotiation()) {
+                        this.sendRawLineImmediately("CAP END");
+                        this.capabilityManager.endNegotiation();
+                    }
                 }
                 break;
             case NOTICE:

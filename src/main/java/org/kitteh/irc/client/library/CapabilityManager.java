@@ -29,20 +29,25 @@ import java.util.List;
 /**
  * I'm the CAP man!
  */
-class CAPManager {
-    enum Capability {
-        AWAY_NOTIFY;
+class CapabilityManager {
+    private List<String> capabilities = new ArrayList<>();
+    private List<String> supportedCapabilities = new ArrayList<>();
+    private final IRCClient client;
+    private boolean negotiating = true;
 
-        private String toString;
-
-        private Capability() {
-            this.toString = this.name().toLowerCase().replace('_', '-');
-        }
+    CapabilityManager(IRCClient client) {
+        this.client = client;
     }
 
-    private List<Capability> capabilities;
-
-    List<Capability> getCapabilities() {
+    List<String> getCapabilities() {
         return new ArrayList<>(this.capabilities);
+    }
+
+    boolean isNegotiating() {
+        return this.negotiating;
+    }
+
+    void endNegotiation() {
+        this.negotiating = false;
     }
 }
