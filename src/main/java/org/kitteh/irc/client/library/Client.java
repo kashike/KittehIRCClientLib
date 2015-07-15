@@ -43,11 +43,7 @@ public interface Client {
      * @return a client builder
      */
     static ClientBuilder builder() {
-        try {
-            return (ClientBuilder) Class.forName(Client.class.getPackage().getName() + ".IRCClientBuilder").getDeclaredConstructor().newInstance();
-        } catch (Exception e) {
-            throw new RuntimeException("Kitteh IRC Client Library cannot create a ClientBuilder.", e);
-        }
+        return new IRCClientBuilder();
     }
 
     /**
