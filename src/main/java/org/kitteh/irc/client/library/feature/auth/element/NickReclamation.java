@@ -24,7 +24,6 @@
 package org.kitteh.irc.client.library.feature.auth.element;
 
 import org.kitteh.irc.client.library.feature.auth.AuthProtocol;
-import org.kitteh.irc.client.library.util.Sanity;
 
 import javax.annotation.Nonnull;
 
@@ -37,18 +36,12 @@ public interface NickReclamation extends AuthProtocol {
      *
      * @param nick nickname to ghost
      */
-    default void ghostNick(@Nonnull String nick) {
-        Sanity.safeMessageCheck(nick, "Nick");
-        this.getClient().sendRawLine("NickServ :GHOST " + nick);
-    }
+    void ghostNick(@Nonnull String nick);
 
     /**
      * Regaining a nickname.
      *
      * @param nick nickname to regain
      */
-    default void regainNick(@Nonnull String nick) {
-        Sanity.safeMessageCheck(nick, "Nick");
-        this.getClient().sendRawLine("NickServ :REGAIN " + nick);
-    }
+    void regainNick(@Nonnull String nick);
 }

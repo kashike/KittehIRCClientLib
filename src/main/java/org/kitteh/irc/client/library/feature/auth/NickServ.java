@@ -31,6 +31,7 @@ import org.kitteh.irc.client.library.feature.auth.element.EventListening;
 import org.kitteh.irc.client.library.feature.auth.element.NickReclamation;
 import org.kitteh.irc.client.library.feature.filter.NumericFilter;
 import org.kitteh.irc.client.library.util.Format;
+import org.kitteh.irc.client.library.util.Sanity;
 import org.kitteh.irc.client.library.util.ToStringer;
 
 import javax.annotation.Nonnull;
@@ -64,6 +65,22 @@ public class NickServ extends AbstractAccountPassProtocol implements EventListen
         }
     }
 
+    /**
+     * The default NickServ nickname.
+     */
+    public static final String NICK = "NickServ";
+    /**
+     * The command used to identify with NickServ.
+     */
+    public static final String IDENTIFY_COMMAND = "IDENTIFY";
+    /**
+     * The command used to ghost a nick with NickServ.
+     */
+    public static final String GHOST_COMMAND = "GHOST";
+    /**
+     * The command used to regain a nick with NickServ.
+     */
+    public static final String REGAIN_COMMAND = "REGAIN";
     private final Listener listener = new Listener();
 
     /**
@@ -80,7 +97,23 @@ public class NickServ extends AbstractAccountPassProtocol implements EventListen
     @Nonnull
     @Override
     protected String getAuthentication() {
-        return "PRIVMSG " + this.getNickServNick() + " :IDENTIFY " + this.getAccountName() + ' ' + this.getPassword();
+        return this.formatCommand(IDENTIFY_COMMAND) + ' ' + this.getAccountName() + ' ' + this.getPassword();
+    }
+
+    @Override
+    public void ghostNick(@Nonnull String nick) {
+        Sanity.safeMessageCheck(nick, "Nick");
+        this.getClient().sendRawLine(this.formatCommand(GHOST_COMMAND) + ' ' + nick);
+    }
+
+    @Override
+    public void regainNick(@Nonnull String nick) {
+        Sanity.safeMessageCheck(nick, "Nick");
+        this.getClient().sendRawLine(this.formatCommand(IDENTIFY_COMMAND) + ' ' + nick);
+    }
+
+    private String formatCommand(@Nonnull String command) {
+        return "PRIVMSG " + this.getNickServNick() + " :" + command;
     }
 
     @Nonnull
@@ -96,6 +129,6 @@ public class NickServ extends AbstractAccountPassProtocol implements EventListen
      */
     @Nonnull
     protected String getNickServNick() {
-        return "NickServ";
+        return NICK;
     }
 }

@@ -66,8 +66,9 @@ public class WallopsCommand extends Command {
         this.getClient().sendRawLine("WALLOPS :" + this.message);
     }
 
+    @Nonnull
     @Override
-    public String toString() {
-        return new ToStringer(this).add("client", this.getClient()).add("message", this.message).toString();
+    public ToStringer toStringer() {
+        return super.toStringer().add("message", this.message);
     }
 }

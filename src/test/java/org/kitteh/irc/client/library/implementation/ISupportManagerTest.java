@@ -231,8 +231,8 @@ public class ISupportManagerTest {
      */
     @Test
     public void whox() {
-        Assert.assertTrue(ISupportParameter.Whox.class.isAssignableFrom(this.getManager().createParameter(ISupportParameter.Whox.NAME).getClass()));
-        Assert.assertTrue(ISupportParameter.Whox.class.isAssignableFrom(this.getManager().createParameter(ISupportParameter.Whox.NAME + "=MEOW").getClass()));
+        Assert.assertTrue(ISupportParameter.WhoX.class.isAssignableFrom(this.getManager().createParameter(ISupportParameter.WhoX.NAME).getClass()));
+        Assert.assertTrue(ISupportParameter.WhoX.class.isAssignableFrom(this.getManager().createParameter(ISupportParameter.WhoX.NAME + "=MEOW").getClass()));
     }
 
     private class KittenParameter implements ISupportParameter {

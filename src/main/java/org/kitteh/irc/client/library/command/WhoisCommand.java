@@ -92,8 +92,9 @@ public class WhoisCommand extends Command {
         this.getClient().sendRawLine(builder.toString());
     }
 
+    @Nonnull
     @Override
-    public String toString() {
-        return new ToStringer(this).add("client", this.getClient()).add("server", this.server).add("target", this.target).toString();
+    protected ToStringer toStringer() {
+        return super.toStringer().add("server", this.server).add("target", this.target);
     }
 }

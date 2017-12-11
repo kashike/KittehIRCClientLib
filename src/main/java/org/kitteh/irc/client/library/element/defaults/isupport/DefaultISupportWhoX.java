@@ -30,8 +30,8 @@ import org.kitteh.irc.client.library.element.defaults.DefaultISupportParameter;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class DefaultISupportWhox extends DefaultISupportParameter implements ISupportParameter.Whox {
-    public DefaultISupportWhox(@Nonnull Client client, @Nonnull String name, @Nullable String value) {
+public class DefaultISupportWhoX extends DefaultISupportParameter implements ISupportParameter.WhoX {
+    public DefaultISupportWhoX(@Nonnull Client client, @Nonnull String name, @Nullable String value) {
         super(client, name, value);
     }
 }
