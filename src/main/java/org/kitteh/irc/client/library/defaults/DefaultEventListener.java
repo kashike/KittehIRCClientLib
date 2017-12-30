@@ -311,7 +311,12 @@ public class DefaultEventListener {
             this.trackException(event, "WHOIS CHANNELS response too short");
             return;
         }
-        this.getWhoisBuilder(event.getParameters().get(1)).addChannels(event.getParameters().get(2));
+        final Client client = event.getClient();
+        final Set<Channel> channels = new HashSet<>();
+        for (final String channel : event.getParameters().get(2).split(" ")) {
+            client.getChannel(channel).ifPresent(channels::add);
+        }
+        this.getWhoisBuilder(event.getParameters().get(1)).addChannels(channels);
     }
 
     @NumericFilter(671) // WHOISSECURE

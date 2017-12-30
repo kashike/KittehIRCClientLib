@@ -60,7 +60,7 @@ public interface User extends MessageReceiver, Staleable {
      * @return channel names the user is in
      */
     @Nonnull
-    Set<String> getChannels();
+    Set<Channel> getChannels();
 
     /**
      * Gets the user's host.

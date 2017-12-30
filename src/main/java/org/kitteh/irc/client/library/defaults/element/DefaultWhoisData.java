@@ -24,6 +24,7 @@
 package org.kitteh.irc.client.library.defaults.element;
 
 import org.kitteh.irc.client.library.Client;
+import org.kitteh.irc.client.library.element.Channel;
 import org.kitteh.irc.client.library.element.WhoisData;
 import org.kitteh.irc.client.library.util.Sanity;
 import org.kitteh.irc.client.library.util.ToStringer;
@@ -45,7 +46,7 @@ public class DefaultWhoisData implements WhoisData {
     public static class Builder {
         private final Client client;
         private String account;
-        private final Set<String> channels = new HashSet<>();
+        private final Set<Channel> channels = new HashSet<>();
         private final String nick;
         private String userString;
         private String host;
@@ -93,8 +94,8 @@ public class DefaultWhoisData implements WhoisData {
          *
          * @param channels channels to add
          */
-        public void addChannels(@Nonnull String channels) {
-            Collections.addAll(this.channels, Sanity.nullCheck(channels, "Channels cannot be null").split(" "));
+        public void addChannels(@Nonnull Set<Channel> channels) {
+            this.channels.addAll(Sanity.nullCheck(channels, "Channels cannot be null"));
         }
 
         /**
@@ -198,7 +199,7 @@ public class DefaultWhoisData implements WhoisData {
 
     private final Client client;
     private final String account;
-    private final Set<String> channels;
+    private final Set<Channel> channels;
     private final String name;
     private final String nick;
     private final String userString;
@@ -232,7 +233,7 @@ public class DefaultWhoisData implements WhoisData {
      * @param signOnTime when the user signed on, if known
      * @param awayMessage user away message, if known
      */
-    public DefaultWhoisData(@Nonnull Client client, @Nullable String account, @Nonnull Set<String> channels, @Nonnull String nick, @Nonnull String userString,
+    public DefaultWhoisData(@Nonnull Client client, @Nullable String account, @Nonnull Set<Channel> channels, @Nonnull String nick, @Nonnull String userString,
                             @Nonnull String host, @Nullable String realName, @Nullable String server, @Nullable String serverDescription, boolean secureConnection,
                             @Nullable String operatorInformation, @Nullable Long idleTime, @Nullable Long signOnTime, @Nullable String awayMessage) {
         this.client = client;
@@ -268,7 +269,7 @@ public class DefaultWhoisData implements WhoisData {
 
     @Nonnull
     @Override
-    public Set<String> getChannels() {
+    public Set<Channel> getChannels() {
         return this.channels;
     }
 

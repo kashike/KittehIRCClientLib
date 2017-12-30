@@ -24,6 +24,7 @@
 package org.kitteh.irc.client.library.defaults.element;
 
 import org.kitteh.irc.client.library.Client;
+import org.kitteh.irc.client.library.element.Channel;
 import org.kitteh.irc.client.library.element.User;
 import org.kitteh.irc.client.library.util.ToStringer;
 
@@ -36,7 +37,7 @@ import java.util.Set;
 public class DefaultUser extends DefaultStaleable implements User {
     private final String account;
     private final String awayMessage;
-    private final Set<String> channels;
+    private final Set<Channel> channels;
     private final String host;
     private final boolean isAway;
     private final String nick;
@@ -47,7 +48,7 @@ public class DefaultUser extends DefaultStaleable implements User {
 
     public DefaultUser(@Nonnull Client.WithManagement client, @Nonnull String name, @Nullable String account, @Nullable String awayMessage,
                        @Nonnull String nick, @Nonnull String user, @Nonnull String host, boolean isAway,
-                       @Nullable String operString, @Nullable String realName, @Nullable String server, @Nonnull Set<String> channels) {
+                       @Nullable String operString, @Nullable String realName, @Nullable String server, @Nonnull Set<Channel> channels) {
         super(client, name);
         this.account = account;
         this.awayMessage = awayMessage;
@@ -80,7 +81,7 @@ public class DefaultUser extends DefaultStaleable implements User {
 
     @Nonnull
     @Override
-    public Set<String> getChannels() {
+    public Set<Channel> getChannels() {
         return this.channels;
     }
 
