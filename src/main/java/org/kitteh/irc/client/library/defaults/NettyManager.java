@@ -24,25 +24,17 @@
 package org.kitteh.irc.client.library.defaults;
 
 import io.netty.bootstrap.Bootstrap;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
-import io.netty.channel.ChannelOutboundHandlerAdapter;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.codec.DelimiterBasedFrameDecoder;
-import io.netty.handler.codec.MessageToMessageEncoder;
-import io.netty.handler.codec.string.StringDecoder;
-import io.netty.handler.codec.string.StringEncoder;
 import io.netty.handler.proxy.Socks4ProxyHandler;
 import io.netty.handler.proxy.Socks5ProxyHandler;
 import io.netty.handler.ssl.SslContext;
@@ -50,8 +42,6 @@ import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
-import io.netty.handler.timeout.IdleStateHandler;
-import io.netty.util.CharsetUtil;
 import io.netty.util.concurrent.ScheduledFuture;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -66,6 +56,7 @@ import org.kitteh.irc.client.library.feature.defaultmessage.DefaultMessageType;
 import org.kitteh.irc.client.library.feature.sts.StsClientState;
 import org.kitteh.irc.client.library.feature.sts.StsMachine;
 import org.kitteh.irc.client.library.feature.sts.StsPolicy;
+import org.kitteh.irc.client.library.network.DefaultPipelineHandlers;
 import org.kitteh.irc.client.library.util.AcceptingTrustManagerFactory;
 import org.kitteh.irc.client.library.util.ToStringer;
 
@@ -80,7 +71,6 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -132,23 +122,12 @@ public class NettyManager {
 
         private void buildOurFutureTogether() {
             // Outbound - Processed in pipeline back to front.
-            this.channel.pipeline().addFirst("[OUTPUT] Output listener", new MessageToMessageEncoder<String>() {
-                @Override
-                protected void encode(ChannelHandlerContext ctx, String msg, List<Object> out) {
-                    ClientConnection.this.client.getOutputListener().queue(msg);
-                    out.add(msg);
-                }
-            });
-            this.channel.pipeline().addFirst("[OUTPUT] Add line breaks", new MessageToMessageEncoder<String>() {
-                @Override
-                protected void encode(ChannelHandlerContext ctx, String msg, List<Object> out) {
-                    out.add(msg + "\r\n");
-                }
-            });
-            this.channel.pipeline().addFirst("[OUTPUT] String encoder", new StringEncoder(CharsetUtil.UTF_8));
+            this.channel.pipeline().addFirst("[OUTPUT] Output listener", DefaultPipelineHandlers.outputListener(msg -> this.client.getOutputListener().queue(msg)));
+            this.channel.pipeline().addFirst("[OUTPUT] Add line breaks", DefaultPipelineHandlers.lineEncoder());
+            this.channel.pipeline().addFirst("[OUTPUT] String encoder", DefaultPipelineHandlers.stringEncoder());
 
             // Handle timeout
-            this.channel.pipeline().addLast("[INPUT] Idle state handler", new IdleStateHandler(250, 0, 0));
+            this.channel.pipeline().addLast("[INPUT] Idle state handler", DefaultPipelineHandlers.idleStateHandler());
             this.channel.pipeline().addLast("[INPUT] Catch idle", new ChannelDuplexHandler() {
                 @Override
                 public void userEventTriggered(ChannelHandlerContext ctx, Object evt) {
@@ -162,19 +141,13 @@ public class NettyManager {
             });
 
             // Inbound
-            this.channel.pipeline().addLast("[INPUT] Line splitter", new DelimiterBasedFrameDecoder(MAX_LINE_LENGTH, Unpooled.wrappedBuffer(new byte[]{(byte) '\r', (byte) '\n'})));
-            this.channel.pipeline().addLast("[INPUT] String decoder", new StringDecoder(CharsetUtil.UTF_8));
-            this.channel.pipeline().addLast("[INPUT] Send to client", new SimpleChannelInboundHandler<String>() {
-                @Override
-                protected void channelRead0(ChannelHandlerContext ctx, String msg) {
-                    if (msg == null) {
-                        return;
-                    }
-                    ClientConnection.this.client.getInputListener().queue(msg);
-                    ClientConnection.this.client.processLine(msg);
-                    ClientConnection.this.lastMessage = msg;
-                }
-            });
+            this.channel.pipeline().addLast("[INPUT] Line splitter", DefaultPipelineHandlers.lineSplitter(MAX_LINE_LENGTH));
+            this.channel.pipeline().addLast("[INPUT] String decoder", DefaultPipelineHandlers.stringDecoder());
+            this.channel.pipeline().addLast("[INPUT] Send to client", DefaultPipelineHandlers.inputListener(msg -> {
+                this.client.getInputListener().queue(msg);
+                this.client.processLine(msg);
+                this.lastMessage = msg;
+            }));
 
             // SSL
             if (this.client.isSecureConnection()) {
@@ -214,22 +187,8 @@ public class NettyManager {
             }
 
             // Exception handling
-            this.channel.pipeline().addLast("[INPUT] Exception handler", new ChannelInboundHandlerAdapter() {
-                @Override
-                public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-                    if (cause instanceof Exception) {
-                        ClientConnection.this.handleException((Exception) cause);
-                    }
-                }
-            });
-            this.channel.pipeline().addFirst("[OUTPUT] Exception handler", new ChannelOutboundHandlerAdapter() {
-                @Override
-                public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-                    if (cause instanceof Exception) {
-                        ClientConnection.this.handleException((Exception) cause);
-                    }
-                }
-            });
+            this.channel.pipeline().addLast("[INPUT] Exception handler", DefaultPipelineHandlers.inboundExceptionHandler(this::handleException));
+            this.channel.pipeline().addFirst("[OUTPUT] Exception handler", DefaultPipelineHandlers.outboundExceptionHandler(this::handleException));
 
             // Clean up on disconnect
             this.channel.closeFuture().addListener(future -> {
